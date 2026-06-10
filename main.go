@@ -37,7 +37,7 @@ func run(r io.Reader) (float64, error) {
 
 const numberPattern = `\s*([+-]?(?:\d+\.?\d*|\.\d+))\s*`
 
-var exprRegex = regexp.MustCompile(`^` + numberPattern + `([+])` + numberPattern + `$`)
+var exprRegex = regexp.MustCompile(`^` + numberPattern + `([+\-*/])` + numberPattern + `$`)
 
 func interpret(line string) (float64, error) {
 	matches := exprRegex.FindStringSubmatch(line)
@@ -45,10 +45,11 @@ func interpret(line string) (float64, error) {
 		if strings.TrimSpace(line) == "" {
 			return 0, errors.New("error: empty expression")
 		}
-		return 0, fmt.Errorf("error: expected \"number + number\", got %q", line)
+		return 0, fmt.Errorf("error: expected \"number op number\", got %q", line)
 	}
 
-	left, _, right := matches[1], matches[2], matches[3]
+	left, opStr, right := matches[1], matches[2], matches[3]
+	op := opStr[0]
 
 	a, err := strconv.ParseFloat(left, 64)
 	if err != nil {
@@ -59,5 +60,19 @@ func interpret(line string) (float64, error) {
 		return 0, fmt.Errorf("error: invalid number %q", right)
 	}
 
-	return a + b, nil
+	switch op {
+	case '+':
+		return a + b, nil
+	case '-':
+		return a - b, nil
+	case '*':
+		return a * b, nil
+	case '/':
+		if b == 0 {
+			return 0, errors.New("error: division by zero")
+		}
+		return a / b, nil
+	default:
+		return 0, fmt.Errorf("error: unknown operator %q", string(op))
+	}
 }

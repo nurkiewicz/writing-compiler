@@ -23,6 +23,15 @@ func TestInterpret(t *testing.T) {
 		{"1.5 + 2.5", 4.0},
 		{"0.1 + 0.2", 0.30000000000000004},
 		{"-3.14 + 3.14", 0},
+		{"10 - 3", 7},
+		{"0.5 - 1.5", -1.0},
+		{"-5 - -3", -2},
+		{"3 * 4", 12},
+		{"2.5 * 4", 10},
+		{"-2 * 3", -6},
+		{"10 / 4", 2.5},
+		{"1 / 3", 1.0 / 3.0},
+		{"-6 / 2", -3},
 	}
 	for _, tt := range tests {
 		got, err := interpret(tt.input)
@@ -44,9 +53,7 @@ func TestInterpretErrors(t *testing.T) {
 		"abc + def",
 		"+ 2",
 		"2 +",
-		"10 - 3",
-		"3 * 4",
-		"10 / 4",
+		"1 / 0",
 	}
 	for _, input := range tests {
 		_, err := interpret(input)

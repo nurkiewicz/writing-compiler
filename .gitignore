@@ -1,0 +1,6 @@
+# Binaries
+compiler
+
+# Go artifacts
+*.test
+*.out
