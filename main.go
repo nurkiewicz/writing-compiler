@@ -35,9 +35,9 @@ func run(r io.Reader) (float64, error) {
 	return 0, errors.New("error: empty expression")
 }
 
-const numberPattern = `[+-]?(?:\d+\.?\d*|\.\d+)`
+const numberPattern = `\s*([+-]?(?:\d+\.?\d*|\.\d+))\s*`
 
-var exprRegex = regexp.MustCompile(`^\s*(` + numberPattern + `)\s*([+])\s*(` + numberPattern + `)\s*$`)
+var exprRegex = regexp.MustCompile(`^` + numberPattern + `([+])` + numberPattern + `$`)
 
 func interpret(line string) (float64, error) {
 	matches := exprRegex.FindStringSubmatch(line)
