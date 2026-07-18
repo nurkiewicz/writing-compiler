@@ -4,3 +4,4 @@ compiler
 # Go artifacts
 *.test
 *.out
+.idea
