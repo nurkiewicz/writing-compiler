@@ -1,5 +1,6 @@
 # Binaries
 compiler
+/vm
 
 # Go artifacts
 *.test

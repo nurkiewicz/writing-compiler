@@ -1,21 +1,20 @@
 ## Commands
 
 ```bash
-go build ./...          # build
-go test ./...           # run all tests
-go test -run TestName   # run a single test
-go vet ./...            # lint
-go run main.go          # run (reads from stdin)
-echo "3 + 4" | go run main.go
-go run main.go < test.txt
+go build ./...                      # build
+go build -o compiler ./cmd/compiler # build compiler
+go build -o vm ./cmd/vm             # build VM
+make all                            # build compiler and VM
+go test ./...                       # run all tests
+go vet ./...                        # lint
+echo "3 + 4" | go run ./cmd/compiler | go run ./cmd/vm
 ```
 
 ## Architecture
 
-This is a single-file Go CLI interpreter (`main.go`) with no external dependencies.
+This project contains two Go CLI executables with no external dependencies:
 
-**Data flow:** `main()` → `run(io.Reader)` → `interpret(line string)` per non-blank line → prints result to stdout.
+- `cmd/compiler` parses one arithmetic expression and writes binary bytecode to stdout.
+- `cmd/vm` reads bytecode from stdin, executes it, and prints the result to stdout.
 
-- `interpret` strips all whitespace, scans past the first number token (including an optional leading sign) to find the operator (`+`, `-`, `*`, `/`), then parses both sides as `float64`. Division by zero is an error.
-- `run` is the loop: scans lines, skips blanks, calls `interpret`, and returns on the first error.
-- `test.txt` contains sample input for manual testing.
+**Data flow:** stdin → compiler → binary bytecode → VM → result.
