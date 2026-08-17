@@ -1,5 +1,5 @@
 # Binaries
-compiler
+/compiler
 
 # Go artifacts
 *.test
