@@ -126,14 +126,19 @@ func compile(expr expression) ([]byte, error) {
 	sourceFileName := pool.utf8("SourceFile")
 	sourceFile := pool.utf8("PL0.pl0")
 
-	code := []byte{0xb2, byte(systemOut >> 8), byte(systemOut)}
+	code := []byte{opcodeGetstatic, byte(systemOut >> 8), byte(systemOut)}
 	code = appendPush(code, expr.left, pool)
 	code = appendPush(code, expr.right, pool)
-	opcode, ok := map[byte]byte{'+': 0x60, '-': 0x64, '*': 0x68, '/': 0x6c}[expr.op]
+	opcode, ok := map[byte]byte{
+		'+': opcodeIadd,
+		'-': opcodeIsub,
+		'*': opcodeImul,
+		'/': opcodeIdiv,
+	}[expr.op]
 	if !ok {
 		return nil, fmt.Errorf("error: unsupported operator %q", expr.op)
 	}
-	code = append(code, opcode, 0xb6, byte(println>>8), byte(println), 0xb1)
+	code = append(code, opcode, opcodeInvokevirtual, byte(println>>8), byte(println), opcodeReturn)
 
 	var class bytes.Buffer
 	u4(&class, 0xcafebabe)
@@ -160,19 +165,19 @@ func compile(expr expression) ([]byte, error) {
 func appendPush(code []byte, value int32, pool *constantPool) []byte {
 	switch {
 	case value == -1:
-		return append(code, 0x02)
+		return append(code, opcodeIconstM1)
 	case value >= 0 && value <= 5:
-		return append(code, byte(0x03+value))
+		return append(code, byte(opcodeIconst0+value))
 	case value >= -128 && value <= 127:
-		return append(code, 0x10, byte(value))
+		return append(code, opcodeBipush, byte(value))
 	case value >= -32768 && value <= 32767:
-		return append(code, 0x11, byte(value>>8), byte(value))
+		return append(code, opcodeSipush, byte(value>>8), byte(value))
 	default:
 		index := pool.integer(value)
 		if index <= 0xff {
-			return append(code, 0x12, byte(index))
+			return append(code, opcodeLdc, byte(index))
 		}
-		return append(code, 0x13, byte(index>>8), byte(index))
+		return append(code, opcodeLdcW, byte(index>>8), byte(index))
 	}
 }
 
