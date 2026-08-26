@@ -1,6 +1,7 @@
 # Binaries
 /compiler
 /vm
+/jvm-compiler
 
 # Go artifacts
 *.test
