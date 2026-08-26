@@ -112,17 +112,17 @@ func (p *constantPool) add(entry []byte) uint16 {
 
 func compile(expr expression) ([]byte, error) {
 	pool := &constantPool{}
-	thisClass := pool.ref(7, pool.utf8("com/nurkiewicz/PL0"))
-	superClass := pool.ref(7, pool.utf8("java/lang/Object"))
+	thisClass := pool.ref(7, pool.utf8("com/nurkiewicz/PL0")) // CONSTANT_Class
+	superClass := pool.ref(7, pool.utf8("java/lang/Object"))  // CONSTANT_Class
 	codeName := pool.utf8("Code")
 	mainName := pool.utf8("main")
 	mainDescriptor := pool.utf8("([Ljava/lang/String;)V")
-	systemClass := pool.ref(7, pool.utf8("java/lang/System"))
-	outType := pool.ref(12, pool.utf8("out"), pool.utf8("Ljava/io/PrintStream;"))
-	systemOut := pool.ref(9, systemClass, outType)
-	printStreamClass := pool.ref(7, pool.utf8("java/io/PrintStream"))
-	printlnType := pool.ref(12, pool.utf8("println"), pool.utf8("(I)V"))
-	println := pool.ref(10, printStreamClass, printlnType)
+	systemClass := pool.ref(7, pool.utf8("java/lang/System"))                     // CONSTANT_Class
+	outType := pool.ref(12, pool.utf8("out"), pool.utf8("Ljava/io/PrintStream;")) // CONSTANT_NameAndType
+	systemOut := pool.ref(9, systemClass, outType)                                // CONSTANT_Fieldref
+	printStreamClass := pool.ref(7, pool.utf8("java/io/PrintStream"))             // CONSTANT_Class
+	printlnType := pool.ref(12, pool.utf8("println"), pool.utf8("(I)V"))          // CONSTANT_NameAndType
+	println := pool.ref(10, printStreamClass, printlnType)                        // CONSTANT_Methodref
 	sourceFileName := pool.utf8("SourceFile")
 	sourceFile := pool.utf8("PL0.pl0")
 
@@ -141,24 +141,24 @@ func compile(expr expression) ([]byte, error) {
 	code = append(code, opcode, opcodeInvokevirtual, byte(println>>8), byte(println), opcodeReturn)
 
 	var class bytes.Buffer
-	u4(&class, 0xcafebabe)
-	u2(&class, 0)
-	u2(&class, 52)
-	u2(&class, uint16(len(pool.entries)+1))
+	u4(&class, 0xcafebabe)                  // magic
+	u2(&class, 0)                           // minor_version
+	u2(&class, 52)                          // major_version: Java 8
+	u2(&class, uint16(len(pool.entries)+1)) // constant_pool_count
 	for _, entry := range pool.entries {
 		class.Write(entry)
 	}
-	u2(&class, 0x0021)
-	u2(&class, thisClass)
-	u2(&class, superClass)
-	u2(&class, 0)
-	u2(&class, 0)
-	u2(&class, 1)
-	method(&class, mainName, mainDescriptor, codeName, 3, 1, code)
-	u2(&class, 1)
-	u2(&class, sourceFileName)
-	u4(&class, 2)
-	u2(&class, sourceFile)
+	u2(&class, 0x0021)                                             // public, super
+	u2(&class, thisClass)                                          // this_class
+	u2(&class, superClass)                                         // super_class
+	u2(&class, 0)                                                  // interfaces_count
+	u2(&class, 0)                                                  // fields_count
+	u2(&class, 1)                                                  // methods_count
+	method(&class, mainName, mainDescriptor, codeName, 3, 1, code) // max_stack, max_locals
+	u2(&class, 1)                                                  // attributes_count
+	u2(&class, sourceFileName)                                     // attribute_name_index
+	u4(&class, 2)                                                  // attribute_length
+	u2(&class, sourceFile)                                         // sourcefile_index
 	return class.Bytes(), nil
 }
 
