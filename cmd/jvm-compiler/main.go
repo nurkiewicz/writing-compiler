@@ -79,6 +79,7 @@ func parseInt32(value string) (int32, error) {
 
 type constantPool struct {
 	entries [][]byte
+	indexes map[string]uint16
 }
 
 func (p *constantPool) utf8(value string) uint16 {
@@ -106,8 +107,17 @@ func (p *constantPool) integer(value int32) uint16 {
 }
 
 func (p *constantPool) add(entry []byte) uint16 {
+	if p.indexes == nil {
+		p.indexes = make(map[string]uint16)
+	}
+	key := string(entry)
+	if index, ok := p.indexes[key]; ok {
+		return index
+	}
 	p.entries = append(p.entries, entry)
-	return uint16(len(p.entries))
+	index := uint16(len(p.entries))
+	p.indexes[key] = index
+	return index
 }
 
 func compile(expr expression) ([]byte, error) {

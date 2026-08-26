@@ -86,6 +86,19 @@ func TestAppendPushUsesAppropriateOpcodes(t *testing.T) {
 	}
 }
 
+func TestAppendPushReusesIntegerConstant(t *testing.T) {
+	pool := &constantPool{}
+	code := appendPush(nil, 1234567, pool)
+	code = appendPush(code, 1234567, pool)
+
+	if want := []byte{opcodeLdc, 1, opcodeLdc, 1}; !bytes.Equal(code, want) {
+		t.Errorf("code = % x, want % x", code, want)
+	}
+	if got := len(pool.entries); got != 1 {
+		t.Errorf("constant pool entries = %d, want 1", got)
+	}
+}
+
 func TestParseErrors(t *testing.T) {
 	for _, input := range []string{"", "42", "1.5 + 2", "2147483648 + 1", "hello"} {
 		if _, err := parse(input); err == nil {
