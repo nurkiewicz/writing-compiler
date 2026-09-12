@@ -25,12 +25,34 @@ func TestRunWritesJava8ClassWithJVMOpcodes(t *testing.T) {
 	}
 
 	// getstatic System.out, iconst_2, iconst_3, iadd, invokevirtual println, return
-	wantCode := []byte{0xb2, 0x00, 0x0d, 0x05, 0x06, 0x60, 0xb6, 0x00, 0x13, 0xb1}
+	wantCode := []byte{0xb2, 0x00, 0x0e, 0x05, 0x06, 0x60, 0xb6, 0x00, 0x14, 0xb1}
 	if !bytes.Contains(classFile, wantCode) {
 		t.Errorf("class file does not contain expected addition bytecode: % x", wantCode)
 	}
 	if !bytes.Contains(classFile, []byte("PL0.pl0")) {
 		t.Error("class file does not contain PL0.pl0 source file name")
+	}
+	if !bytes.Contains(classFile, []byte("LineNumberTable")) {
+		t.Error("class file does not contain a LineNumberTable")
+	}
+}
+
+func TestMethodMapsExpressionBytecodeToLineOne(t *testing.T) {
+	var output bytes.Buffer
+	code := []byte{opcodeGetstatic, 0, 1, opcodeIconst0, opcodeIconst0, opcodeIadd, opcodeReturn}
+	method(&output, 1, 2, 3, 4, 3, 1, code, 3)
+
+	wantLineNumberTable := []byte{
+		0x00, 0x00, // exception_table_length
+		0x00, 0x01, // attributes_count
+		0x00, 0x04, // LineNumberTable attribute_name_index
+		0x00, 0x00, 0x00, 0x06, // attribute_length
+		0x00, 0x01, // line_number_table_length
+		0x00, 0x03, // start_pc
+		0x00, 0x01, // line_number
+	}
+	if !bytes.HasSuffix(output.Bytes(), wantLineNumberTable) {
+		t.Errorf("method does not end with expected line number table: % x", output.Bytes())
 	}
 }
 

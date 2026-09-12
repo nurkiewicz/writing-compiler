@@ -125,6 +125,7 @@ func compile(expr expression) ([]byte, error) {
 	thisClass := pool.ref(7, pool.utf8("com/nurkiewicz/PL0")) // CONSTANT_Class
 	superClass := pool.ref(7, pool.utf8("java/lang/Object"))  // CONSTANT_Class
 	codeName := pool.utf8("Code")
+	lineNumberTableName := pool.utf8("LineNumberTable")
 	mainName := pool.utf8("main")
 	mainDescriptor := pool.utf8("([Ljava/lang/String;)V")
 	systemClass := pool.ref(7, pool.utf8("java/lang/System"))                     // CONSTANT_Class
@@ -137,6 +138,7 @@ func compile(expr expression) ([]byte, error) {
 	sourceFile := pool.utf8("PL0.pl0")
 
 	code := []byte{opcodeGetstatic, byte(systemOut >> 8), byte(systemOut)}
+	expressionStart := uint16(len(code))
 	code = appendPush(code, expr.left, pool)
 	code = appendPush(code, expr.right, pool)
 	opcode, ok := map[byte]byte{
@@ -158,17 +160,17 @@ func compile(expr expression) ([]byte, error) {
 	for _, entry := range pool.entries {
 		class.Write(entry)
 	}
-	u2(&class, 0x0021)                                             // public, super
-	u2(&class, thisClass)                                          // this_class
-	u2(&class, superClass)                                         // super_class
-	u2(&class, 0)                                                  // interfaces_count
-	u2(&class, 0)                                                  // fields_count
-	u2(&class, 1)                                                  // methods_count
-	method(&class, mainName, mainDescriptor, codeName, 3, 1, code) // max_stack, max_locals
-	u2(&class, 1)                                                  // attributes_count
-	u2(&class, sourceFileName)                                     // attribute_name_index
-	u4(&class, 2)                                                  // attribute_length
-	u2(&class, sourceFile)                                         // sourcefile_index
+	u2(&class, 0x0021)     // public, super
+	u2(&class, thisClass)  // this_class
+	u2(&class, superClass) // super_class
+	u2(&class, 0)          // interfaces_count
+	u2(&class, 0)          // fields_count
+	u2(&class, 1)          // methods_count
+	method(&class, mainName, mainDescriptor, codeName, lineNumberTableName, 3, 1, code, expressionStart)
+	u2(&class, 1)              // attributes_count
+	u2(&class, sourceFileName) // attribute_name_index
+	u4(&class, 2)              // attribute_length
+	u2(&class, sourceFile)     // sourcefile_index
 	return class.Bytes(), nil
 }
 
@@ -191,19 +193,24 @@ func appendPush(code []byte, value int32, pool *constantPool) []byte {
 	}
 }
 
-func method(w *bytes.Buffer, name, descriptor, codeName, maxStack, maxLocals uint16, code []byte) {
+func method(w *bytes.Buffer, name, descriptor, codeName, lineNumberTableName, maxStack, maxLocals uint16, code []byte, lineStart uint16) {
 	u2(w, 0x0009)
 	u2(w, name)
 	u2(w, descriptor)
 	u2(w, 1)
 	u2(w, codeName)
-	u4(w, uint32(12+len(code)))
+	u4(w, uint32(24+len(code)))
 	u2(w, maxStack)
 	u2(w, maxLocals)
 	u4(w, uint32(len(code)))
 	w.Write(code)
 	u2(w, 0)
-	u2(w, 0)
+	u2(w, 1)
+	u2(w, lineNumberTableName)
+	u4(w, 6)
+	u2(w, 1)
+	u2(w, lineStart)
+	u2(w, 1)
 }
 
 func u2(w *bytes.Buffer, value uint16) {
