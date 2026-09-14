@@ -35,3 +35,23 @@ With `PL0.class` in `com/nurkiewicz`, compile and run the host:
 javac -cp . HostApplication.java
 java -cp . HostApplication
 ```
+
+## LLVM compiler
+
+`llvm-compiler` accepts the same `integer operator integer` language and emits
+textual LLVM IR. The generated module exposes a native `main` function and
+prints the result with `printf`.
+
+Build the compiler, generate LLVM IR, and use Clang to create a native
+executable:
+
+```bash
+make llvm-compiler
+echo "40 + 2" | ./llvm-compiler > expression.ll
+clang expression.ll -o expression
+./expression
+# 42
+```
+
+The generated `.ll` file can also be inspected or optimized with standard LLVM
+tools such as `llvm-as` and `opt`.

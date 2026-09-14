@@ -1,15 +1,18 @@
-.PHONY: all compiler vm jvm-compiler clean
+.PHONY: all clean
 
-all: compiler vm jvm-compiler
+all: compiler vm jvm-compiler llvm-compiler
 
-compiler:
-	go build -o compiler ./cmd/compiler
+compiler: cmd/compiler/main.go go.mod go.sum
+	go build -o $@ ./cmd/compiler
 
-vm:
-	go build -o vm ./cmd/vm
+vm: cmd/vm/main.go go.mod go.sum
+	go build -o $@ ./cmd/vm
 
-jvm-compiler:
-	go build -o jvm-compiler ./cmd/jvm-compiler
+jvm-compiler: cmd/jvm-compiler/main.go cmd/jvm-compiler/opcodes.go go.mod go.sum
+	go build -o $@ ./cmd/jvm-compiler
+
+llvm-compiler: cmd/llvm-compiler/main.go go.mod go.sum
+	go build -o $@ ./cmd/llvm-compiler
 
 clean:
-	rm -f compiler vm jvm-compiler
+	rm -f compiler vm jvm-compiler llvm-compiler
