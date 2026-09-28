@@ -1,18 +1,28 @@
-.PHONY: all clean
+BIN_DIR := bin
+BINARIES := compiler vm jvm-compiler llvm-compiler
+TARGETS := $(addprefix $(BIN_DIR)/,$(BINARIES))
 
-all: compiler vm jvm-compiler llvm-compiler
+.PHONY: all clean $(BINARIES)
 
-compiler: cmd/compiler/main.go go.mod go.sum
+all: $(TARGETS)
+
+$(BINARIES): %: $(BIN_DIR)/%
+
+$(BIN_DIR):
+	mkdir -p $@
+
+$(BIN_DIR)/compiler: cmd/compiler/main.go go.mod go.sum | $(BIN_DIR)
 	go build -o $@ ./cmd/compiler
 
-vm: cmd/vm/main.go go.mod go.sum
+$(BIN_DIR)/vm: cmd/vm/main.go go.mod go.sum | $(BIN_DIR)
 	go build -o $@ ./cmd/vm
 
-jvm-compiler: cmd/jvm-compiler/main.go cmd/jvm-compiler/opcodes.go go.mod go.sum
+$(BIN_DIR)/jvm-compiler: cmd/jvm-compiler/main.go cmd/jvm-compiler/opcodes.go go.mod go.sum | $(BIN_DIR)
 	go build -o $@ ./cmd/jvm-compiler
 
-llvm-compiler: cmd/llvm-compiler/main.go go.mod go.sum
+$(BIN_DIR)/llvm-compiler: cmd/llvm-compiler/main.go go.mod go.sum | $(BIN_DIR)
 	go build -o $@ ./cmd/llvm-compiler
 
 clean:
-	rm -f compiler vm jvm-compiler llvm-compiler
+	rm -f $(TARGETS)
+	rmdir $(BIN_DIR) 2>/dev/null || true

@@ -2,10 +2,10 @@
 
 ```bash
 go build ./...                      # build
-go build -o compiler ./cmd/compiler # build compiler
-go build -o vm ./cmd/vm             # build VM
-go build -o jvm-compiler ./cmd/jvm-compiler # build JVM compiler
-go build -o llvm-compiler ./cmd/llvm-compiler # build LLVM compiler
+go build -o bin/compiler ./cmd/compiler # build compiler
+go build -o bin/vm ./cmd/vm             # build VM
+go build -o bin/jvm-compiler ./cmd/jvm-compiler # build JVM compiler
+go build -o bin/llvm-compiler ./cmd/llvm-compiler # build LLVM compiler
 make all                            # build all executables
 go test ./...                       # run all tests
 go vet ./...                        # lint

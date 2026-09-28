@@ -13,7 +13,7 @@ metadata identifies the source file as `PL0.pl0`.
 ```bash
 make jvm-compiler
 mkdir -p com/nurkiewicz
-echo "2 + 3" | ./jvm-compiler > com/nurkiewicz/PL0.class
+echo "2 + 3" | ./bin/jvm-compiler > com/nurkiewicz/PL0.class
 java -cp . com.nurkiewicz.PL0
 # 5
 ```
@@ -47,7 +47,7 @@ executable:
 
 ```bash
 make llvm-compiler
-echo "40 + 2" | ./llvm-compiler > expression.ll
+echo "40 + 2" | ./bin/llvm-compiler > expression.ll
 clang expression.ll -o expression
 ./expression
 # 42
