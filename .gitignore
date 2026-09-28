@@ -2,6 +2,7 @@
 /compiler
 /vm
 /jvm-compiler
+/llvm-compiler
 
 # Go artifacts
 *.test
